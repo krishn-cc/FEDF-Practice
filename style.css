@@ -1,0 +1,86 @@
+.top-header {
+    background-color: white;
+    padding: 10px 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 5px solid #dd9933;
+}
+
+.logo-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1400px;
+}
+
+.logo {
+    height: 60px;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 25px;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links li a {
+    text-decoration: none;
+    font-weight: 500;
+    color: #101010;
+ 
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+}
+
+.apply-button {
+    background: linear-gradient(to right, #003366, #fbb034, #ff1e00);
+    padding: 10px 20px;
+    color: white;
+    text-decoration: none;
+    border-radius: 30px;
+    
+}
+
+.apply-button:hover {
+    opacity: 0.9;
+}
+
+.h1 {
+    color: #DD9933;
+    font-size: 24px;
+    text-align: center;
+}
+
+.h2 {
+    color: black;
+    font-size: 20px;
+    text-align: center;
+}
+
+.page {
+    background-color: aqua;
+    border-radius: 10px;
+    border: 2px solid rgb(244, 16, 4);
+    margin: auto;
+    padding: 20px;
+}
+
+.team {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin: 20px;
+}
+
+.card {
+    background-color: #FCFCFC;
+    border-radius: 10px;
+    padding: 20px;
+    width: 200px;
+    text-align: center;
+}
