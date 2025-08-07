@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            color: white;
+            min-width: 120px;
+            backdrop-filter: blur(5px);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box, .filter-select, .add-task-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.9);
+            min-width: 200px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        .filter-select {
+            background: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+        }
+
+        .add-task-btn {
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .add-task-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .task-columns {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .column {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            min-height: 400px;
+            backdrop-filter: blur(5px);
+        }
+
+        .column-header {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .todo { background: rgba(255, 193, 7, 0.3); }
+        .inprogress { background: rgba(33, 150, 243, 0.3); }
+        .done { background: rgba(76, 175, 80, 0.3); }
+
+        .task {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            cursor: move;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .task:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .task.dragging {
+            opacity: 0.7;
+            transform: rotate(5deg);
+        }
+
+        .task-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .task-description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #888;
+        }
+
+        .task-priority {
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .priority-high { background: #ffebee; color: #c62828; }
+        .priority-medium { background: #fff3e0; color: #ef6c00; }
+        .priority-low { background: #e8f5e8; color: #2e7d32; }
+
+        .task-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .task:hover .task-actions {
+            opacity: 1;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+
+        .edit-btn:hover { background: #2196F3; color: white; }
+        .delete-btn:hover { background: #f44336; color: white; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #ddd;
+            color: #333;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .drop-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .drop-zone.drag-over {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box, .filter-select, .add-task-btn {
+                width: 100%;
+            }
+            
+            .stats {
+                gap: 15px;
+            }
+            
+            .stat-card {
+                min-width: auto;
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Task Management Dashboard</h1>
+            <p>Organize your work with drag & drop functionality</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalTasks">0</div>
+                <div>Total Tasks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="todoTasks">0</div>
+                <div>To Do</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="inProgressTasks">0</div>
+                <div>In Progress</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completedTasks">0</div>
+                <div>Completed</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <input type="text" class="search-box" placeholder="Search tasks..." id="searchBox">
+            <select class="filter-select" id="priorityFilter">
+                <option value="">All Priorities</option>
+                <option value="high">High Priority</option>
+                <option value="medium">Medium Priority</option>
+                <option value="low">Low Priority</option>
+            </select>
+            <button class="add-task-btn" onclick="openModal()">+ Add New Task</button>
+        </div>
+
+        <div class="task-columns">
+            <div class="column" data-status="todo">
+                <div class="column-header todo">To Do</div>
+                <div class="tasks-container" id="todoColumn"></div>
+                <div class="drop-zone">Drop tasks here</div>
+            </div>
+            <div class="column" data-status="inprogress">
+                <div class="column-header inprogress">In Progress</div>
+                <div class="tasks-container" id="inprogressColumn"></div>
+                <div class="drop-zone">Drop tasks here</div>
+            </div>
+            <div class="column" data-status="done">
+                <div class="column-header done">Done</div>
+                <div class="tasks-container" id="doneColumn"></div>
+                <div class="drop-zone">Drop tasks here</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for adding/editing tasks -->
+    <div class="modal" id="taskModal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Add New Task</h2>
+            <form id="taskForm">
+                <div class="form-group">
+                    <label for="taskTitle">Title *</label>
+                    <input type="text" id="taskTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="taskDescription">Description</label>
+                    <textarea id="taskDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="taskPriority">Priority</label>
+                    <select id="taskPriority">
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="taskStatus">Status</label>
+                    <select id="taskStatus">
+                        <option value="todo">To Do</option>
+                        <option value="inprogress">In Progress</option>
+                        <option value="done">Done</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        class TaskManager {
+            constructor() {
+                this.tasks = [];
+                this.currentEditId = null;
+                this.loadTasks();
+                this.bindEvents();
+                this.renderTasks();
+                this.updateStats();
+            }
+
+            // Generate unique ID
+            generateId() {
+                return Date.now() + Math.random().toString(36).substr(2, 9);
+            }
+
+            // Load tasks from memory (simulating localStorage)
+            loadTasks() {
+                // Initialize with some sample data for demonstration
+                if (this.tasks.length === 0) {
+                    this.tasks = [
+                        {
+                            id: this.generateId(),
+                            title: "Design Homepage Layout",
+                            description: "Create wireframes and mockups for the new homepage design",
+                            priority: "high",
+                            status: "todo",
+                            createdAt: new Date().toLocaleDateString()
+                        },
+                        {
+                            id: this.generateId(),
+                            title: "Implement Authentication",
+                            description: "Set up user login and registration system",
+                            priority: "medium",
+                            status: "inprogress",
+                            createdAt: new Date().toLocaleDateString()
+                        },
+                        {
+                            id: this.generateId(),
+                            title: "Write Documentation",
+                            description: "Complete API documentation for developers",
+                            priority: "low",
+                            status: "done",
+                            createdAt: new Date().toLocaleDateString()
+                        }
+                    ];
+                }
+            }
+
+            // Save tasks to memory (simulating localStorage)
+            saveTasks() {
+                // In a real app, you would use localStorage.setItem('tasks', JSON.stringify(this.tasks))
+                console.log('Tasks saved:', this.tasks);
+            }
+
+            // Add new task
+            addTask(taskData) {
+                const task = {
+                    id: this.generateId(),
+                    ...taskData,
+                    createdAt: new Date().toLocaleDateString()
+                };
+                this.tasks.push(task);
+                this.saveTasks();
+                this.renderTasks();
+                this.updateStats();
+                this.showNotification('Task added successfully!');
+            }
+
+            // Update existing task
+            updateTask(id, taskData) {
+                const taskIndex = this.tasks.findIndex(task => task.id === id);
+                if (taskIndex !== -1) {
+                    this.tasks[taskIndex] = { ...this.tasks[taskIndex], ...taskData };
+                    this.saveTasks();
+                    this.renderTasks();
+                    this.updateStats();
+                    this.showNotification('Task updated successfully!');
+                }
+            }
+
+            // Delete task
+            deleteTask(id) {
+                if (confirm('Are you sure you want to delete this task?')) {
+                    this.tasks = this.tasks.filter(task => task.id !== id);
+                    this.saveTasks();
+                    this.renderTasks();
+                    this.updateStats();
+                    this.showNotification('Task deleted successfully!');
+                }
+            }
+
+            // Get filtered tasks
+            getFilteredTasks() {
+                const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+                const priorityFilter = document.getElementById('priorityFilter').value;
+
+                return this.tasks.filter(task => {
+                    const matchesSearch = task.title.toLowerCase().includes(searchTerm) ||
+                                        task.description.toLowerCase().includes(searchTerm);
+                    const matchesPriority = !priorityFilter || task.priority === priorityFilter;
+                    return matchesSearch && matchesPriority;
+                });
+            }
+
+            // Render all tasks
+            renderTasks() {
+                const filteredTasks = this.getFilteredTasks();
+                
+                // Clear all columns
+                ['todo', 'inprogress', 'done'].forEach(status => {
+                    const column = document.getElementById(`${status}Column`);
+                    column.innerHTML = '';
+                });
+
+                // Render tasks in respective columns
+                filteredTasks.forEach(task => {
+                    const taskElement = this.createTaskElement(task);
+                    const column = document.getElementById(`${task.status}Column`);
+                    column.appendChild(taskElement);
+                });
+            }
+
+            // Create task HTML element
+            createTaskElement(task) {
+                const taskDiv = document.createElement('div');
+                taskDiv.className = 'task';
+                taskDiv.draggable = true;
+                taskDiv.dataset.taskId = task.id;
+
+                taskDiv.innerHTML = `
+                    <div class="task-actions">
+                        <button class="action-btn edit-btn" onclick="taskManager.editTask('${task.id}')">✏️</button>
+                        <button class="action-btn delete-btn" onclick="taskManager.deleteTask('${task.id}')">🗑️</button>
+                    </div>
+                    <div class="task-title">${task.title}</div>
+                    <div class="task-description">${task.description}</div>
+                    <div class="task-meta">
+                        <span class="task-priority priority-${task.priority}">${task.priority}</span>
+                        <span>${task.createdAt}</span>
+                    </div>
+                `;
+
+                // Add drag event listeners
+                taskDiv.addEventListener('dragstart', this.handleDragStart.bind(this));
+                taskDiv.addEventListener('dragend', this.handleDragEnd.bind(this));
+
+                return taskDiv;
+            }
+
+            // Edit task
+            editTask(id) {
+                const task = this.tasks.find(task => task.id === id);
+                if (task) {
+                    this.currentEditId = id;
+                    document.getElementById('modalTitle').textContent = 'Edit Task';
+                    document.getElementById('taskTitle').value = task.title;
+                    document.getElementById('taskDescription').value = task.description;
+                    document.getElementById('taskPriority').value = task.priority;
+                    document.getElementById('taskStatus').value = task.status;
+                    openModal();
+                }
+            }
+
+            // Update statistics
+            updateStats() {
+                const total = this.tasks.length;
+                const todo = this.tasks.filter(t => t.status === 'todo').length;
+                const inProgress = this.tasks.filter(t => t.status === 'inprogress').length;
+                const completed = this.tasks.filter(t => t.status === 'done').length;
+
+                document.getElementById('totalTasks').textContent = total;
+                document.getElementById('todoTasks').textContent = todo;
+                document.getElementById('inProgressTasks').textContent = inProgress;
+                document.getElementById('completedTasks').textContent = completed;
+            }
+
+            // Drag and drop handlers
+            handleDragStart(e) {
+                e.dataTransfer.setData('text/plain', e.target.dataset.taskId);
+                e.target.classList.add('dragging');
+            }
+
+            handleDragEnd(e) {
+                e.target.classList.remove('dragging');
+            }
+
+            // Bind event listeners
+            bindEvents() {
+                // Search functionality
+                document.getElementById('searchBox').addEventListener('input', () => {
+                    this.renderTasks();
+                });
+
+                // Filter functionality
+                document.getElementById('priorityFilter').addEventListener('change', () => {
+                    this.renderTasks();
+                });
+
+                // Form submission
+                document.getElementById('taskForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleFormSubmit();
+                });
+
+                // Drag and drop for columns
+                this.setupDragAndDrop();
+            }
+
+            // Setup drag and drop for columns
+            setupDragAndDrop() {
+                const columns = document.querySelectorAll('.column');
+                columns.forEach(column => {
+                    column.addEventListener('dragover', this.handleDragOver);
+                    column.addEventListener('drop', this.handleDrop.bind(this));
+                    column.addEventListener('dragenter', this.handleDragEnter);
+                    column.addEventListener('dragleave', this.handleDragLeave);
+                });
+            }
+
+            handleDragOver(e) {
+                e.preventDefault();
+            }
+
+            handleDragEnter(e) {
+                if (e.target.classList.contains('drop-zone')) {
+                    e.target.classList.add('drag-over');
+                }
+            }
+
+            handleDragLeave(e) {
+                if (e.target.classList.contains('drop-zone')) {
+                    e.target.classList.remove('drag-over');
+                }
+            }
+
+            handleDrop(e) {
+                e.preventDefault();
+                const taskId = e.dataTransfer.getData('text/plain');
+                const newStatus = e.currentTarget.dataset.status;
+                
+                if (taskId && newStatus) {
+                    this.updateTask(taskId, { status: newStatus });
+                }
+
+                // Remove drag-over class from all drop zones
+                document.querySelectorAll('.drop-zone').forEach(zone => {
+                    zone.classList.remove('drag-over');
+                });
+            }
+
+            // Handle form submission
+            handleFormSubmit() {
+                const taskData = {
+                    title: document.getElementById('taskTitle').value,
+                    description: document.getElementById('taskDescription').value,
+                    priority: document.getElementById('taskPriority').value,
+                    status: document.getElementById('taskStatus').value
+                };
+
+                if (this.currentEditId) {
+                    this.updateTask(this.currentEditId, taskData);
+                    this.currentEditId = null;
+                } else {
+                    this.addTask(taskData);
+                }
+
+                closeModal();
+                document.getElementById('taskForm').reset();
+            }
+
+            // Show notification
+            showNotification(message) {
+                // Simple notification - in a real app you might use a more sophisticated system
+                const notification = document.createElement('div');
+                notification.textContent = message;
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #4CAF50;
+                    color: white;
+                    padding: 15px 20px;
+                    border-radius: 5px;
+                    z-index: 1001;
+                    animation: slideIn 0.3s ease;
+                `;
+
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            }
+        }
+
+        // Modal functions
+        function openModal() {
+            document.getElementById('taskModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('taskModal').style.display = 'none';
+            document.getElementById('modalTitle').textContent = 'Add New Task';
+            document.getElementById('taskForm').reset();
+            taskManager.currentEditId = null;
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('taskModal');
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Initialize the task manager
+        const taskManager = new TaskManager();
+
+        // Add some CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); }
+                to { transform: translateX(0); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
