@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORMS IN HTML</title>
+    <link rel="stylesheet" href="style1.css">
+
+</head>
+<body>
+    <style>
+        h1{
+            font-style: bold;
+            text-align: center;
+            color: rgba(10, 102, 208, 0.957);
+            font-size: 60px;
+
+
+        }
+    </style>
+    <h1>Forms in HTML</h1>
+    <form action="Backend.html" >
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+
+        <label for="message">Message:</label>
+        <input type ="text" id="message" name="message" required>
+
+       
+        DOB <input type="date" name="dob" required>
+        Git hub <input type="url" name="github" required>
+        
+         <input type="submit" value="register">
+        <input type="reset" value="Reset">
+    </form>
+
+</body>
+</html>
